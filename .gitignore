@@ -1,0 +1,17 @@
+# 큰 원본·압축 파일
+*.hwpx
+*.zip
+
+# 회의 녹취록 (참석자 이름 포함)
+docs/상담사_음성*.txt
+
+# Office 잠금 파일
+~$*
+
+# Python / 비밀 값
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.streamlit/secrets.toml
