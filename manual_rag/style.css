@@ -1,0 +1,112 @@
+/* 3_chat.py 화면 꾸미기. docs/DESIGN-apple.md 의 색·글꼴·모서리 값을 그대로 옮겼다.
+   원칙: 강조색은 파랑 하나, 그림자와 그라데이션 없음, 눌렀을 때는 살짝 줄어든다. */
+
+/* SF Pro 가 없는 컴퓨터(윈도우)에서는 가장 비슷한 한글 글꼴 Pretendard 를 받아 쓴다 */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+
+:root {
+  --primary: #0066cc;
+  --primary-focus: #0071e3;
+  --ink: #1d1d1f;
+  --ink-80: #333333;
+  --ink-48: #7a7a7a;
+  --canvas: #ffffff;
+  --parchment: #f5f5f7;
+  --hairline: #e0e0e0;
+  --font: "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont,
+          "Pretendard Variable", Pretendard, system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+/* ── 바탕과 글자 ─────────────────────────────────────────── */
+.stApp { background: var(--canvas); color: var(--ink); }
+.stApp, .stApp p, .stApp li, .stApp label, .stApp button, .stApp input, .stApp textarea,
+.stApp summary, .stApp [data-testid="stText"], .stApp [data-testid="stMarkdownContainer"] {
+  font-family: var(--font) !important;
+}
+.stApp [data-testid="stMarkdownContainer"] p,
+.stApp [data-testid="stMarkdownContainer"] li {
+  font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; color: var(--ink);
+}
+.stApp [data-testid="stMarkdownContainer"] strong { font-weight: 600; }
+.stApp a { color: var(--primary); text-decoration: none; }
+
+[data-testid="stHeader"] { background: transparent; }
+[data-testid="stAppDeployButton"] { display: none; }
+[data-testid="stMainBlockContainer"] { max-width: 760px; padding-top: 48px; padding-bottom: 32px; }
+
+/* ── 머리말: 대화 전에는 크게, 대화 중에는 작게 ───────────── */
+.hero { text-align: center; padding: 80px 0 32px; }
+.hero-title { font-size: 40px; font-weight: 600; line-height: 1.1; letter-spacing: -0.28px; color: var(--ink); }
+.hero-lead { font-size: 21px; font-weight: 400; line-height: 1.4; letter-spacing: -0.2px; color: var(--ink-48); margin-top: 12px; }
+.topbar { padding-bottom: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--hairline); }
+.topbar-title { font-size: 21px; font-weight: 600; line-height: 1.19; letter-spacing: -0.2px; color: var(--ink); }
+.fine { font-size: 12px; line-height: 1.4; letter-spacing: -0.12px; color: var(--ink-48); margin-top: 8px; }
+
+/* ── 말풍선: 상담사는 오른쪽 회색 풍선, 챗봇은 풍선 없이 글만 ── */
+[data-testid="stChatMessage"] { background: transparent; padding: 0; gap: 0; margin-bottom: 8px; }
+[data-testid="stChatMessageAvatarUser"],
+[data-testid="stChatMessageAvatarAssistant"] { display: none; }
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) { justify-content: flex-end; }
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
+  flex: 0 1 auto; width: fit-content; max-width: 80%; margin: 0 0 0 auto;
+  background: var(--parchment); border-radius: 18px; padding: 11px 17px;
+}
+
+/* ── 버튼: 다음 질문은 알약 모양 칩 ───────────────────────── */
+.stApp .stButton > button {
+  background: var(--canvas); color: var(--primary);
+  border: 1px solid var(--hairline); border-radius: 9999px;
+  padding: 11px 16px; min-height: 44px; box-shadow: none;
+  transition: transform 0.12s ease;
+}
+.stApp .stButton > button p { font-size: 14px; line-height: 1.29; letter-spacing: -0.224px; color: var(--primary); white-space: normal; }
+.stApp .stButton > button:hover { background: var(--canvas); color: var(--primary); border-color: var(--hairline); }
+.stApp .stButton > button:active { transform: scale(0.95); background: var(--canvas); color: var(--primary); border-color: var(--hairline); }
+.stApp .stButton > button:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; box-shadow: none; }
+
+/* ── 근거 보기: 가는 테두리의 둥근 카드 ───────────────────── */
+[data-testid="stExpander"] details { border: 1px solid var(--hairline); border-radius: 18px; background: var(--canvas); box-shadow: none; }
+[data-testid="stExpander"] summary { padding: 12px 17px; color: var(--primary); }
+[data-testid="stExpander"] summary:hover { color: var(--primary); }
+.stApp [data-testid="stExpander"] summary [data-testid="stMarkdownContainer"] p { font-size: 14px; letter-spacing: -0.224px; color: var(--primary); }
+[data-testid="stExpander"] summary svg { fill: var(--primary); color: var(--primary); }
+.stApp [data-testid="stExpanderDetails"] [data-testid="stMarkdownContainer"] p { font-size: 14px; line-height: 1.43; letter-spacing: -0.224px; }
+.stApp [data-testid="stText"] {
+  font-size: 14px; line-height: 1.43; letter-spacing: -0.224px; color: var(--ink-80);
+  white-space: pre-wrap; padding-bottom: 12px;
+}
+
+/* ── 입력창: 화면 아래에 떠 있는 반투명 띠 + 알약 모양 입력칸 ── */
+[data-testid="stBottom"] > div {
+  background: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+}
+[data-testid="stBottomBlockContainer"] { max-width: 760px; padding-top: 12px; padding-bottom: 24px; }
+[data-testid="stChatInput"] { background: transparent; }
+[data-testid="stChatInput"] > div {
+  background: var(--canvas); border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 26px;
+  padding: 2px 6px 2px 12px; box-shadow: none;
+}
+[data-testid="stChatInput"] > div:focus-within { border-color: var(--primary-focus); box-shadow: 0 0 0 1px var(--primary-focus); }
+[data-testid="stChatInput"] textarea { font-size: 17px; letter-spacing: -0.374px; color: var(--ink); caret-color: var(--primary); }
+[data-testid="stChatInput"] textarea::placeholder { color: var(--ink-48); }
+[data-testid="stChatInputSubmitButton"] { background: var(--primary); color: #ffffff; border-radius: 9999px; transition: transform 0.12s ease; }
+[data-testid="stChatInputSubmitButton"]:hover { background: var(--primary); color: #ffffff; }
+[data-testid="stChatInputSubmitButton"]:active { transform: scale(0.95); }
+[data-testid="stChatInputSubmitButton"]:disabled { background: var(--parchment); color: var(--ink-48); }
+[data-testid="stChatInputSubmitButton"] svg { fill: currentColor; }
+
+/* ── 옆 메뉴: 살짝 어두운 흰색 바탕, 흰 카드 ──────────────── */
+[data-testid="stSidebar"] { background: var(--parchment); border-right: none; }
+[data-testid="stSidebar"] label p { font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink); }
+[data-testid="stSidebar"] [data-baseweb="input"],
+[data-testid="stSidebar"] [data-baseweb="base-input"] { background: var(--canvas); border-color: transparent; border-radius: 11px; }
+[data-testid="stSidebar"] [data-baseweb="input"] { border: 1px solid rgba(0, 0, 0, 0.08); }
+[data-testid="stSidebar"] [data-baseweb="input"]:focus-within { border-color: var(--primary-focus); }
+[data-testid="stSidebar"] input { font-size: 14px; color: var(--ink); background: var(--canvas); }
+[data-testid="stSidebar"] [data-baseweb="input"] button { background: var(--canvas); color: var(--ink-48); }
+
+/* ── 안내 상자: 색 띠 대신 조용한 회색 카드 ───────────────── */
+[data-testid="stAlertContainer"] { background: var(--parchment); color: var(--ink-80); border: none; border-radius: 18px; padding: 17px; }
+[data-testid="stSidebar"] [data-testid="stAlertContainer"] { background: var(--canvas); }
+[data-testid="stAlertContainer"] p { font-size: 14px !important; line-height: 1.43 !important; letter-spacing: -0.224px !important; color: var(--ink-80) !important; }

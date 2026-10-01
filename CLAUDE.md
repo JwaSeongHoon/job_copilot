@@ -74,6 +74,8 @@ API 키는 `ANTHROPIC_API_KEY` 환경 변수가 있으면 사이드바 입력란
 - 대화 기록은 `st.session_state["talk"]`에 `{role, content, found, chips}`로 쌓습니다. Claude에는 최근 `HISTORY`개의 `role`/`content`만 보내고, 매뉴얼 발췌는 이번 질문에만 붙입니다(이전 턴의 발췌는 다시 보내지 않음).
 - 턴마다 Claude를 두 번 호출합니다. `make_query`가 앞 대화를 보고 "그럼 청년은요?" 같은 질문을 완전한 검색어로 바꾸고, `stream_answer`가 `client.beta.messages.stream`으로 답을 한 글자씩 내보냅니다.
 - 답 끝의 `[다음 질문]`(`MARK`) 아래 줄들은 화면에 보이지 않고 버튼으로 바뀝니다. 이 형식은 `CHAT_PROMPT`와 `stream_answer`의 파싱이 맞물려 있으니 한쪽만 바꾸지 마세요. 표시가 조각 사이에 잘려 올 수 있어 스트리밍 중에는 끝의 `len(MARK)`글자를 미뤄서 내보냅니다.
+- 화면 꾸미기는 `style.css`에 따로 있고 `3_chat.py`가 읽어서 넣습니다. 색·글꼴·모서리 값은 `docs/DESIGN-apple.md`에서 옮긴 것이니 그 문서의 규칙(강조색은 파랑 `#0066cc` 하나, 그림자·그라데이션 없음, 본문 17px, 버튼은 알약 모양, 누르면 `scale(0.95)`)을 따르세요. CSS는 Streamlit의 `data-testid`(`stChatMessage`, `stChatInput`, `stExpander`, `stBottom` 등)에 의존하므로 Streamlit 버전을 올리면 화면을 다시 확인해야 합니다. `2_app.py`에는 적용하지 않았습니다.
+- 머리말은 대화 전에는 가운데 큰 제목(`.hero`), 대화 중에는 위쪽 작은 제목(`.topbar`)입니다. 이 전환을 위해 `st.chat_input`을 화면 코드 앞쪽에서 먼저 호출합니다.
 - API 키 없이 화면 흐름을 확인하려면 `streamlit.testing.v1.AppTest`로 실행하면서 `anthropic.Anthropic`을 가짜 클라이언트로 바꿔 끼우면 됩니다.
 
 ## 지켜야 할 제품 원칙

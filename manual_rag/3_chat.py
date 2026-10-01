@@ -13,8 +13,9 @@ MODEL = "claude-opus-5-5"
 MARK = "[다음 질문]"  # AI가 답 끝에 붙이는 표시. 이 아래 줄들은 버튼으로 보여 준다
 HISTORY = 8          # AI에게 함께 보내는 이전 대화 수 (질문과 답을 각각 1개로 셈)
 
-GREETING = ("안녕하세요, 국민취업지원제도 매뉴얼 도우미예요. "
-            "용어를 몰라도 괜찮으니 궁금한 걸 편하게 물어보세요.")
+TITLE = "국민취업지원제도 매뉴얼 챗봇"
+GREETING = "용어를 몰라도 괜찮아요. 궁금한 걸 편하게 물어보세요."
+NOTICE = "2026년 업무매뉴얼 기준 · 상담사 전용 · 최종 판단은 상담사가 합니다."
 STARTERS = ["구직자가 처음 오면 뭘 물어봐야 해요?",
             "1유형과 2유형이 뭐가 달라요?",
             "수당은 얼마 받아요?"]
@@ -112,22 +113,36 @@ def stream_answer(client, history, question, found, result):
 
 
 def show_sources(found):
-    with st.expander("📖 근거 보기 (AI가 참고한 매뉴얼 발췌)"):
+    with st.expander("근거 보기"):
         for c in found:
             st.markdown(f"**{c['source']}** · 점수 {c['score']:.2f}")
             st.text(c["text"])
 
 
-# ⑤ 화면
+# ⑤ 화면 (색·글꼴·모서리 같은 꾸미기는 style.css 에 따로 둔다)
 st.set_page_config(page_title="매뉴얼 상담 챗봇", page_icon="💬")
-st.title("💬 국민취업지원제도 매뉴얼 챗봇")
-st.caption("2026년 업무매뉴얼 기준 · 상담사 전용 · 최종 판단은 상담사가 합니다.")
+with open(os.path.join(HERE, "style.css"), encoding="utf-8") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 api_key = st.sidebar.text_input("Claude API 키", type="password",
                                 value=os.environ.get("ANTHROPIC_API_KEY", ""))
 st.sidebar.info("구직자의 이름, 주민등록번호, 연락처는 입력하지 마세요.")
-if st.sidebar.button("🗑 새 대화"):
+if st.sidebar.button("새 대화", use_container_width=True):
     st.session_state.clear()
+
+# 대화 기록은 화면이 다시 그려져도 남도록 session_state 에 둔다
+talk = st.session_state.setdefault("talk", [])
+# 입력창은 코드의 어디에 써도 화면 맨 아래에 붙는다. 버튼을 눌러 들어온 질문도 여기서 받는다
+question = st.chat_input("궁금한 것을 물어보세요") or st.session_state.pop("clicked", None)
+
+# 머리말: 대화를 시작하기 전에는 가운데에 크게, 대화 중에는 위에 작게 보여 준다
+if talk or question:
+    st.markdown(f'<div class="topbar"><div class="topbar-title">{TITLE}</div>'
+                f'<div class="fine">{NOTICE}</div></div>', unsafe_allow_html=True)
+else:
+    st.markdown(f'<div class="hero"><div class="hero-title">{TITLE}</div>'
+                f'<div class="hero-lead">{GREETING}</div><div class="fine">{NOTICE}</div></div>',
+                unsafe_allow_html=True)
 if not os.path.exists(os.path.join(HERE, "manual_chunks.json")):
     st.error("manual_chunks.json 이 없습니다. 먼저 python 1_convert.py 를 실행하세요.")
     st.stop()
@@ -135,12 +150,7 @@ if not api_key:
     st.warning("왼쪽에 Claude API 키를 입력하세요.")
     st.stop()
 
-# 대화 기록은 화면이 다시 그려져도 남도록 session_state 에 둔다
-talk = st.session_state.setdefault("talk", [])
-
 # 지금까지의 대화를 말풍선으로 다시 그린다
-with st.chat_message("assistant"):
-    st.markdown(GREETING)
 for m in talk:
     with st.chat_message(m["role"]):
         st.markdown(m["content"])
@@ -148,13 +158,12 @@ for m in talk:
             show_sources(m["found"])
 
 # 다음 질문 버튼: 마지막 답 아래에만 보여 준다. 누르면 그 글이 질문이 된다
-chips = talk[-1].get("chips", []) if talk else STARTERS
+chips = [] if question else talk[-1].get("chips", []) if talk else STARTERS
 for i, column in enumerate(st.columns(len(chips)) if chips else []):
     if column.button(chips[i], key=f"chip{i}", use_container_width=True):
         st.session_state["clicked"] = chips[i]
         st.rerun()
 
-question = st.chat_input("궁금한 것을 물어보세요") or st.session_state.pop("clicked", None)
 if question:
     with st.chat_message("user"):
         st.markdown(question)
