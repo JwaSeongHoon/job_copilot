@@ -29,6 +29,7 @@ streamlit run hello_rag/2_app.py            # 검색 + Claude 답변
 # manual_rag: 실제 업무매뉴얼
 python manual_rag/1_convert.py              # .hwpx → manual_chunks.json
 streamlit run manual_rag/2_app.py           # Q&A 탭 + 판정 가이드 탭
+streamlit run manual_rag/3_chat.py          # 챗봇 (이어 묻기, 스트리밍, 다음 질문 버튼)
 ```
 
 API 키는 `ANTHROPIC_API_KEY` 환경 변수가 있으면 사이드바 입력란에 기본값으로 채워지고, 없으면 사이드바에 직접 입력합니다.
@@ -66,6 +67,14 @@ API 키는 `ANTHROPIC_API_KEY` 환경 변수가 있으면 사이드바 입력란
 - **Q&A 탭**은 Claude를 두 번 호출합니다. 먼저 `REWRITE_PROMPT`로 상담사의 일상어 질문을 매뉴얼 용어로 바꾸고, `원래 질문 + 바꾼 검색어`로 검색한 뒤, `ANSWER_PROMPT`로 답합니다.
 - **판정 가이드 탭**은 고정된 검색어 문자열 + 메모로 검색합니다. 중위소득 대비 비율은 LLM에 맡기지 않고 `MEDIAN_INCOME_2026` 표로 코드에서 계산해 프롬프트에 넣습니다. 이 표는 매뉴얼 Part 02에서 손으로 옮긴 값이라 매뉴얼 연도가 바뀌면 함께 갱신해야 하고, 7인 가구까지만 있습니다.
 - `call_claude`는 `@st.cache_data`로 (api_key, system, user_text)가 같으면 저장된 답을 재사용합니다. 프롬프트를 바꿔 실험할 때는 캐시 때문에 이전 답이 나올 수 있습니다.
+
+`3_chat.py` (챗봇)
+
+- `2_app.py`의 Q&A 탭을 대화형으로 바꾼 단계입니다. 색인·검색 코드는 `2_app.py`와 같고(의도된 중복), 판정 가이드는 `2_app.py`에만 있습니다.
+- 대화 기록은 `st.session_state["talk"]`에 `{role, content, found, chips}`로 쌓습니다. Claude에는 최근 `HISTORY`개의 `role`/`content`만 보내고, 매뉴얼 발췌는 이번 질문에만 붙입니다(이전 턴의 발췌는 다시 보내지 않음).
+- 턴마다 Claude를 두 번 호출합니다. `make_query`가 앞 대화를 보고 "그럼 청년은요?" 같은 질문을 완전한 검색어로 바꾸고, `stream_answer`가 `client.beta.messages.stream`으로 답을 한 글자씩 내보냅니다.
+- 답 끝의 `[다음 질문]`(`MARK`) 아래 줄들은 화면에 보이지 않고 버튼으로 바뀝니다. 이 형식은 `CHAT_PROMPT`와 `stream_answer`의 파싱이 맞물려 있으니 한쪽만 바꾸지 마세요. 표시가 조각 사이에 잘려 올 수 있어 스트리밍 중에는 끝의 `len(MARK)`글자를 미뤄서 내보냅니다.
+- API 키 없이 화면 흐름을 확인하려면 `streamlit.testing.v1.AppTest`로 실행하면서 `anthropic.Anthropic`을 가짜 클라이언트로 바꿔 끼우면 됩니다.
 
 ## 지켜야 할 제품 원칙
 
